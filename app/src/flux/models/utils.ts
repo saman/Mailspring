@@ -14,7 +14,7 @@ export function waitFor(latch, options: { timeout?: number } = {}) {
   const timeout = options.timeout || 400;
   const expire = Date.now() + timeout;
   return new Promise(function(resolve, reject) {
-    var attempt = function() {
+    const attempt = () => {
       if (Date.now() > expire) {
         return reject(new Error(`Utils.waitFor hit timeout (${timeout}ms) without firing.`));
       }
@@ -115,7 +115,7 @@ export function wordSearchRegExp(str = '') {
 // Takes an optional customizer. The customizer is passed the key and the
 // new cloned value for that key. The customizer is expected to either
 // modify the value and return it or simply be the identity function.
-export function deepClone(object, customizer?, stackSeen = [], stackRefs = []) {
+export function deepClone<T>(object: T, customizer?, stackSeen = [], stackRefs = []): T {
   let newObject;
   if (!_.isObject(object)) {
     return object;

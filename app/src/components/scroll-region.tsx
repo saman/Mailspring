@@ -509,7 +509,7 @@ export class ScrollRegion extends React.Component<
   _settleHeight = callback => {
     const viewportNode = this._viewportRef.current;
     let lastContentHeight = -1;
-    var scrollIfSettled = () => {
+    const scrollIfSettled = () => {
       if (!this._mounted) {
         return;
       }

@@ -4,7 +4,7 @@
 import fs from 'fs';
 fs.statSyncNoException = function(...args) {
   try {
-    return fs.statSync.apply(fs, args);
+    return fs.statSync(...args);
   } catch (e) {}
   return false;
 };
