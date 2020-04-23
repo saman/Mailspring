@@ -211,7 +211,7 @@ class DatabaseStore extends MailspringStore {
   //
   // If a query is made before the database has been opened, the query will be
   // held in a queue and run / resolved when the database is ready.
-  _query(query: SQLString, values: SQLValue[] = [], background: boolean = false) {
+  _query(query: SQLString, values: SQLValue[] = [], background = false) {
     return new Promise<{ [key: string]: any }[]>(async (resolve, reject) => {
       if (!this._open) {
         this._waiting.push(() => this._query(query, values).then(resolve, reject));

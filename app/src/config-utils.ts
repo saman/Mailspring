@@ -1,7 +1,7 @@
 const _ = require('underscore');
-var isPlainObject, plus, splitKeyPath;
+let isPlainObject, plus, splitKeyPath;
 splitKeyPath = function(keyPath) {
-  var char, i, keyPathArray, startIndex, _i, _len;
+  let char, i, keyPathArray, startIndex, _i, _len;
   startIndex = 0;
   keyPathArray = [];
   if (keyPath == null) {
@@ -22,7 +22,7 @@ isPlainObject = function(value) {
 };
 
 export function remove(array, element) {
-  var index;
+  let index;
   index = array.indexOf(element);
   if (index >= 0) {
     array.splice(index, 1);
@@ -43,7 +43,7 @@ export function deepClone(object) {
   }
 }
 export function deepExtend(target) {
-  var i, key, object, result, _i, _len, _ref;
+  let i, key, object, result, _i, _len, _ref;
   result = target;
   i = 0;
   while (++i < arguments.length) {
@@ -61,7 +61,7 @@ export function deepExtend(target) {
   return result;
 }
 export function valueForKeyPath(object, keyPath) {
-  var key, keys, _i, _len;
+  let key, keys, _i, _len;
   keys = splitKeyPath(keyPath);
   for (_i = 0, _len = keys.length; _i < _len; _i++) {
     key = keys[_i];
@@ -73,7 +73,7 @@ export function valueForKeyPath(object, keyPath) {
   return object;
 }
 export function setValueForKeyPath(object, keyPath, value) {
-  var key, keys;
+  let key, keys;
   keys = splitKeyPath(keyPath);
   while (keys.length > 1) {
     key = keys.shift();

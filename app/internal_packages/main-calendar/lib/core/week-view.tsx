@@ -33,7 +33,7 @@ export class WeekView extends React.Component<
   static displayName = 'WeekView';
 
   _waitingForShift = 0;
-  _mounted: boolean = false;
+  _mounted = false;
   _scrollbar = React.createRef<any>();
   _sub?: Disposable;
 

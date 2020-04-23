@@ -286,7 +286,7 @@ export class ScrollRegion extends React.Component<
   _innerRef = React.createRef<HTMLDivElement>();
   _ownScrollbarRef = React.createRef<Scrollbar>();
 
-  _mounted: boolean = false;
+  _mounted = false;
   _scrollToTaskId = 0;
   _scrollbarComponent = null;
   _totalHeightObserver = null;

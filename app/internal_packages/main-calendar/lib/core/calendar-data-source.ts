@@ -23,7 +23,7 @@ export class CalendarDataSource {
     const end = Event.attributes.recurrenceEnd;
     const start = Event.attributes.recurrenceStart;
 
-    let matcher = new Matcher.Or([
+    const matcher = new Matcher.Or([
       new Matcher.And([start.lte(endUnix), end.gte(startUnix)]),
       new Matcher.And([start.lte(endUnix), start.gte(startUnix)]),
       new Matcher.And([end.gte(startUnix), end.lte(endUnix)]),
