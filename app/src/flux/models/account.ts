@@ -1,6 +1,7 @@
 /* eslint global-require:0 */
 import * as Attributes from '../attributes';
 import { ModelWithMetadata } from './model-with-metadata';
+import { MailsyncProcessExit } from 'mailspring-exports';
 
 let CategoryStore = null;
 let Contact = null;
@@ -107,7 +108,7 @@ export class Account extends ModelWithMetadata {
   public aliases: string[];
   public defaultAlias: string;
   public syncState: string;
-  public syncError: string;
+  public syncError: MailsyncProcessExit | null;
 
   constructor(args) {
     super(args);
