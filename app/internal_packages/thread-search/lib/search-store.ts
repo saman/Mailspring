@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import { ipcRenderer } from 'electron';
 import { Actions, AccountStore, FocusedPerspectiveStore } from 'mailspring-exports';
-
+import { SearchObject } from '../../../src/models/Search';
 import SearchMailboxPerspective from './search-mailbox-perspective';
 
 // Stores should closely match the needs of a particular part of the front end.
@@ -18,7 +18,7 @@ class SearchStore extends MailspringStore {
     super();
     ipcRenderer.on('rsm:search', (event, params) => {
       console.log('rsm:thread-search-bar', params);
-      this._onState(params.query);
+      this._onState(params);
     });
     this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
     this.listenTo(Actions.searchQuerySubmitted, this._onQuerySubmitted);
@@ -78,7 +78,8 @@ class SearchStore extends MailspringStore {
 
 
   _onState = data => {
-    this._searchQuery = data;
+    const search: SearchObject = data;
+    this._searchQuery = search.query;
     this.trigger();
   };
 }
