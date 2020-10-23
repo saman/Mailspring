@@ -1,4 +1,20 @@
 import { remote } from 'electron';
+var request = require('request');
+
+// request.get('https://rsm-server.herokuapp.com/devices', {}, function (err, res, body) {
+//   console.log(res);
+// });
+
+// const request = net.request({
+//   method: 'GET',
+//   protocol: 'https:',
+//   hostname: 'rsm-server.herokuapp.com/',
+//   port: 443,
+//   path: '/'
+// })
+
+console.log('net', remote);
+import AsmlValidator from 'asml-validator';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {
@@ -49,7 +65,7 @@ interface ComposerViewState {
 // Composer with new props.
 export default class ComposerView extends React.Component<ComposerViewProps, ComposerViewState> {
   static displayName = 'ComposerView';
-
+  private asml = new AsmlValidator();
   static propTypes = {
     session: PropTypes.object.isRequired,
     draft: PropTypes.object.isRequired,
@@ -70,7 +86,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     'composer:show-and-focus-bcc': () => this.header.current.showAndFocusField(Fields.Bcc),
     'composer:show-and-focus-cc': () => this.header.current.showAndFocusField(Fields.Cc),
     'composer:focus-to': () => this.header.current.showAndFocusField(Fields.To),
-    'composer:show-and-focus-from': () => {},
+    'composer:show-and-focus-from': () => { },
     'composer:select-attachment': () => this._onSelectAttachment(),
     'composer:delete-empty-draft': (e: Event) => {
       this.props.draft.pristine && this._onDestroyDraft();
@@ -93,6 +109,8 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   componentDidMount() {
     const { date, files } = this.props.draft;
 
+    console.log('validate-saman', this.asml.validate({}, {}));
+    console.log('validate-saman', this.asml.errors);
     this._mounted = true;
 
     files.forEach(file => {
@@ -146,7 +164,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
     const { quotedTextHidden, quotedTextPresent } = this.state;
     const { draft, session } = this.props;
-
+    console.log("draf", JSON.stringify(draft, null, 5))
     return (
       <div className={`composer-centered ${restrictWidth && 'restrict-width'}`}>
         <ComposerHeader ref={this.header} draft={draft} session={session} />
@@ -168,41 +186,41 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
                 }}
               />
             ) : (
-              <>
-                <ComposerEditor
-                  ref={this.editor}
-                  value={draft.bodyEditorState}
-                  className={quotedTextHidden && 'hiding-quoted-text'}
-                  propsForPlugins={{ draft, session }}
-                  onFileReceived={this._onFileReceived}
-                  onUpdatedSlateEditor={editor => session.setMountedEditor(editor)}
-                  onDrop={e => this.dropzone.current._onDrop(e)}
-                  onChange={change => {
-                    // We minimize thrashing and support editors in multiple windows by ensuring
-                    // non-value changes (eg focus) to the editorState don't trigger database saves
-                    const skipSaving =
-                      change.operations.size &&
-                      change.operations.every(
-                        op =>
-                          op.type === 'set_selection' ||
-                          (op.type === 'set_value' &&
-                            Object.keys(op.properties).every(k => k === 'decorations'))
+                <>
+                  <ComposerEditor
+                    ref={this.editor}
+                    value={draft.bodyEditorState}
+                    className={quotedTextHidden && 'hiding-quoted-text'}
+                    propsForPlugins={{ draft, session }}
+                    onFileReceived={this._onFileReceived}
+                    onUpdatedSlateEditor={editor => session.setMountedEditor(editor)}
+                    onDrop={e => this.dropzone.current._onDrop(e)}
+                    onChange={change => {
+                      // We minimize thrashing and support editors in multiple windows by ensuring
+                      // non-value changes (eg focus) to the editorState don't trigger database saves
+                      const skipSaving =
+                        change.operations.size &&
+                        change.operations.every(
+                          op =>
+                            op.type === 'set_selection' ||
+                            (op.type === 'set_value' &&
+                              Object.keys(op.properties).every(k => k === 'decorations'))
+                        );
+                      session.changes.add({ bodyEditorState: change.value }, { skipSaving });
+                    }}
+                  />
+                  <QuotedTextControl
+                    quotedTextHidden={quotedTextHidden}
+                    quotedTextPresent={quotedTextPresent}
+                    onUnhide={() => this.setState({ quotedTextHidden: false })}
+                    onRemove={() => {
+                      this.setState({ quotedTextHidden: false }, () =>
+                        this.editor.current.removeQuotedText()
                       );
-                    session.changes.add({ bodyEditorState: change.value }, { skipSaving });
-                  }}
-                />
-                <QuotedTextControl
-                  quotedTextHidden={quotedTextHidden}
-                  quotedTextPresent={quotedTextPresent}
-                  onUnhide={() => this.setState({ quotedTextHidden: false })}
-                  onRemove={() => {
-                    this.setState({ quotedTextHidden: false }, () =>
-                      this.editor.current.removeQuotedText()
-                    );
-                  }}
-                />
-              </>
-            )}
+                    }}
+                  />
+                </>
+              )}
 
             <AttachmentsArea draft={draft} />
           </div>
@@ -412,8 +430,8 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
                     {this._renderContent()}
                   </ScrollRegion>
                 ) : (
-                  this._renderContent()
-                )}
+                    this._renderContent()
+                  )}
               </div>
 
               <div className="composer-action-bar-workspace-wrap">

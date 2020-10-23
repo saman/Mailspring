@@ -1,5 +1,4 @@
 /* eslint global-require: "off" */
-
 import { BrowserWindow, Menu, app, ipcMain, dialog, nativeImage, shell } from 'electron';
 
 import fs from 'fs-plus';
@@ -22,6 +21,12 @@ import ConfigPersistenceManager from './config-persistence-manager';
 import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
+
+import RuntimeStateMigration from 'rsm-node-mqtt';
+import sendingEmail from '../models/sending-email.json';
+import searchEmail from '../models/search.json';
+import { SearchObject } from '../models/Search';
+import { SendingEmailObject } from '../models/SendingEmail';
 
 let clipboard = null;
 
@@ -50,8 +55,21 @@ export default class Application extends EventEmitter {
   _sourceWindows: { [taskId: string]: BrowserWindow } = {};
   _resettingAndRelaunching: boolean;
 
+  rsm: any;
+
   async start(options) {
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
+
+    this.rsm = new RuntimeStateMigration(
+      { name: 'Mailspring MAC' },
+      this.rsmOnState.bind(this),
+      this.rsmOnRequestState.bind(this),
+      this.rsmOnDevice.bind(this),
+    );
+
+    this.rsm.addModel(sendingEmail);
+    this.rsm.addModel(searchEmail);
+    this.rsm.introduce();
 
     initializeLocalization({ configDirPath });
 
@@ -232,7 +250,7 @@ export default class Application extends EventEmitter {
   // we close windows and log out, we need to wait for these processes to completely
   // exit and then delete the file. It's hard to tell when this happens, so we just
   // retry the deletion a few times.
-  deleteFileWithRetry(filePath, callback = () => {}, retries = 5) {
+  deleteFileWithRetry(filePath, callback = () => { }, retries = 5) {
     const callbackWithRetry = err => {
       if (err && err.message.indexOf('no such file') === -1) {
         console.log(`File Error: ${err.message} - retrying in 150msec`);
@@ -314,6 +332,17 @@ export default class Application extends EventEmitter {
   // needs to manually bubble them up to the Application instance via IPC or they won't be
   // handled. This happens in workspace-element.ts
   handleEvents() {
+    this.on('rsm:search', (message) => {
+      console.log('rsm:search', message);
+      if (message.action === 'set') {
+        const search: SearchObject = message.data;
+        this.rsm.setState(searchEmail.info.title, search);
+      } else if (message.action === 'get') {
+        console.log('rsm:devices', this.rsm.getDevices('search'));
+
+      }
+    });
+
     this.on('application:run-all-specs', () => {
       const win = this.windowManager.focusedWindow();
       this.runSpecs({
@@ -863,5 +892,19 @@ export default class Application extends EventEmitter {
     specWindowOptions.bootstrapScript = bootstrapScript;
 
     this.windowManager.ensureWindow(WindowManager.SPEC_WINDOW, specWindowOptions);
+  }
+
+  rsmOnState(data) {
+    console.log('rsmOnState', data);
+  }
+
+  rsmOnDevice(data) {
+    console.log('rsmOnDevice', data);
+    // this.rsm.getStateDevice(data.model_name, data.device._id);
+  }
+
+  rsmOnRequestState(data) {
+    console.log('rsmOnRequestState', data);
+    this.rsm.sendState(data.model_name, data.device._id);
   }
 }

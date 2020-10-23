@@ -22,6 +22,8 @@ import {
   wrapInQuotes,
 } from './search-bar-util';
 
+import { ipcRenderer, app } from 'electron';
+
 class ThreadSearchBar extends Component<
   {
     query: string;
@@ -41,7 +43,7 @@ class ThreadSearchBar extends Component<
     };
     selectedIdx: number;
   }
-> {
+  > {
   static displayName = 'ThreadSearchBar';
 
   static propTypes = {
@@ -63,6 +65,7 @@ class ThreadSearchBar extends Component<
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log('ThreadSearchBar', nextProps);
     if (nextProps.query !== this.props.query) {
       this._generateSuggestionsForQuery(nextProps.query);
     }
@@ -267,6 +270,8 @@ class ThreadSearchBar extends Component<
     if (query === this.props.query) {
       return;
     }
+    // ipcRenderer.send('command', 'rsm:search', { action: 'set', data: { query } });
+    // ipcRenderer.invoke()
     Actions.searchQueryChanged(query);
     if (query === '') {
       this._onClearSearchQuery();
@@ -311,7 +316,12 @@ class ThreadSearchBar extends Component<
     return localized(`Search`) + ' ' + this.props.perspective.name || '';
   };
 
+  _onGetState = () => {
+    ipcRenderer.send('command', 'rsm:search', { action: 'get' });
+  }
+
   render() {
+
     const { query, isSearching, perspective } = this.props;
     const { suggestions, selectedIdx } = this.state;
 
@@ -340,13 +350,13 @@ class ThreadSearchBar extends Component<
             mode={RetinaImg.Mode.ContentPreserve}
           />
         ) : (
-          <RetinaImg
-            className="search-accessory search"
-            name="searchloupe.png"
-            mode={RetinaImg.Mode.ContentDark}
-            onClick={() => this._fieldEl.focus()}
-          />
-        )}
+            <RetinaImg
+              className="search-accessory search"
+              name="searchloupe.png"
+              mode={RetinaImg.Mode.ContentDark}
+              onClick={() => this._fieldEl.focus()}
+            />
+          )}
         <TokenizingContenteditable
           ref={el => (this._fieldEl = el)}
           value={showPlaceholder ? this._placeholder() : query}
@@ -355,6 +365,7 @@ class ThreadSearchBar extends Component<
           onBlur={this._onBlur}
           onChange={this._onSearchQueryChanged}
         />
+        <button onClick={this._onGetState}>Get</button>
         {showX && (
           <RetinaImg
             name="searchclear.png"
