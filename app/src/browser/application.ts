@@ -56,6 +56,7 @@ export default class Application extends EventEmitter {
   _resettingAndRelaunching: boolean;
 
   rsm: any;
+  rsmEvents = {};
 
   async start(options) {
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
@@ -332,16 +333,6 @@ export default class Application extends EventEmitter {
   // needs to manually bubble them up to the Application instance via IPC or they won't be
   // handled. This happens in workspace-element.ts
   handleEvents() {
-    this.on('rsm:search', (message) => {
-      console.log('rsm:search', message);
-      if (message.action === 'set') {
-        const search: SearchObject = message.data;
-        this.rsm.setState(searchEmail.info.title, search);
-      } else if (message.action === 'get') {
-        console.log('rsm:devices', this.rsm.getDevices('search'));
-
-      }
-    });
 
     this.on('application:run-all-specs', () => {
       const win = this.windowManager.focusedWindow();
@@ -735,6 +726,21 @@ export default class Application extends EventEmitter {
       }
       event.returnValue = true;
     });
+
+    ipcMain.on('rsm:search', (event, params) => {
+      console.log('rsm:search', params);
+      if (params.action === 'set') {
+        const search: SearchObject = params.data;
+        this.rsm.setState(searchEmail.info.title, search);
+      } else if (params.action === 'get') {
+        const devices = this.rsm.getDevices('search');
+        console.log('rsm:devices', devices);
+        if (devices) {
+          this.rsmEvents['search'] = event;
+          this.rsm.getStateDevice('search', devices[0]._id);
+        }
+      }
+    });
   }
 
   // Public: Executes the given command.
@@ -896,6 +902,7 @@ export default class Application extends EventEmitter {
 
   rsmOnState(data) {
     console.log('rsmOnState', data);
+    this.rsmEvents[data.model_name].sender.send(`rsm:${data.model_name}`, data.state);
   }
 
   rsmOnDevice(data) {

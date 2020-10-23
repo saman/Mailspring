@@ -56,6 +56,9 @@ class ThreadSearchBar extends Component<
 
   constructor(props) {
     super(props);
+
+
+
     this.state = {
       suggestions: TokenSuggestionsForEmpty,
       focused: false,
@@ -270,13 +273,15 @@ class ThreadSearchBar extends Component<
     if (query === this.props.query) {
       return;
     }
-    // ipcRenderer.send('command', 'rsm:search', { action: 'set', data: { query } });
-    // ipcRenderer.invoke()
+    ipcRenderer.send('rsm:search', { action: 'set', data: { query } })
     Actions.searchQueryChanged(query);
     if (query === '') {
       this._onClearSearchQuery();
     }
   };
+
+
+
 
   _setSuggestionState = suggestions => {
     const sameItemIdx = suggestions.findIndex(
@@ -317,11 +322,10 @@ class ThreadSearchBar extends Component<
   };
 
   _onGetState = () => {
-    ipcRenderer.send('command', 'rsm:search', { action: 'get' });
+    ipcRenderer.send('rsm:search', { action: 'get' });
   }
 
   render() {
-
     const { query, isSearching, perspective } = this.props;
     const { suggestions, selectedIdx } = this.state;
 
