@@ -88,7 +88,6 @@
     "prettier": "^1.10.0",
     "request": "^2.88.0",
     "rimraf": "^2.6.1",
-    "rsm-node-mqtt": "0.0.3",
     "targz": "^1.0.1",
     "temp": "0.8.x",
     "typescript": "^3.3.3333",
@@ -105,5 +104,7 @@
     "build-licenses-file": "cat ./app/static/all_licenses_preamble.html | ./node_modules/.bin/marked > ./app/static/all_licenses.html && licext --source ./app --mode output | ./node_modules/.bin/marked >> ./app/static/all_licenses.html",
     "ci-setup-mac-keychain": "grunt setup-mac-keychain --gruntfile=app/build/Gruntfile.js --base=./"
   },
-  "dependencies": {}
+  "dependencies": {
+    "rsm-node": "^1.0.7"
+  }
 }

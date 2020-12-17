@@ -22,7 +22,7 @@ import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 
-import RuntimeStateMigration from 'rsm-node-mqtt';
+import RuntimeStateMigration from 'rsm-node';
 import sendingEmail from '../models/sending-email.json';
 import searchEmail from '../models/search.json';
 import { SearchObject } from '../models/Search';
@@ -63,9 +63,11 @@ export default class Application extends EventEmitter {
 
     this.rsm = new RuntimeStateMigration(
       { name: 'Mailspring MAC' },
-      this.rsmOnState.bind(this),
-      this.rsmOnRequestState.bind(this),
-      this.rsmOnDevice.bind(this),
+      this.rsmOnStateRequest.bind(this),
+      this.rsmOnStateReceive.bind(this),
+      this.rsmOnStateMigration.bind(this),
+      this.rsmOnDeviceJoin.bind(this),
+      this.rsmOnDeviceLeave.bind(this),
     );
 
     this.rsm.addModel(sendingEmail);
@@ -728,16 +730,23 @@ export default class Application extends EventEmitter {
     });
 
     ipcMain.on('rsm:search', (event, params) => {
-      console.log('rsm:search', params);
+      console.log('ms:rsm:search', params);
       if (params.action === 'set') {
+        // set the current state of the app
         const search: SearchObject = params.data;
         this.rsm.setState(searchEmail.info.title, search);
       } else if (params.action === 'get') {
-        const devices = this.rsm.getDevices('search');
-        console.log('rsm:devices', devices);
-        if (devices) {
+        // get state from another devices
+        const devices = this.rsm.getDevices(searchEmail.info.title);
+        console.log('ms:rsm:devices', devices);
+        if (devices.length) {
           this.rsmEvents['search'] = event;
-          this.rsm.getStateDevice('search', devices[0]._id);
+          this.rsm.getStateDevice(searchEmail.info.title, devices[0]._id);
+        }
+      } else if (params.action === 'send') {
+        const devices = this.rsm.getDevices(searchEmail.info.title);
+        if (devices.length) {
+          this.rsm.sendState(searchEmail.info.title, devices[0]._id);
         }
       }
     });
@@ -900,18 +909,28 @@ export default class Application extends EventEmitter {
     this.windowManager.ensureWindow(WindowManager.SPEC_WINDOW, specWindowOptions);
   }
 
-  rsmOnState(data) {
-    console.log('rsmOnState', data);
+  rsmOnStateReceive(data) {
+    console.log('rsmOnStateReceive', data);
     this.rsmEvents[data.model_name].sender.send(`rsm:${data.model_name}`, data.state);
   }
 
-  rsmOnDevice(data) {
-    console.log('rsmOnDevice', data);
+  rsmOnStateRequest(data) {
+    console.log('rsmOnStateRequest', data);
+    this.rsm.sendState(data.model_name, data.device._id);
+  }
+
+  rsmOnStateMigration(data) {
+    console.log('rsmOnStateMigration', data);
     // this.rsm.getStateDevice(data.model_name, data.device._id);
   }
 
-  rsmOnRequestState(data) {
-    console.log('rsmOnRequestState', data);
-    this.rsm.sendState(data.model_name, data.device._id);
+  rsmOnDeviceJoin(data) {
+    console.log('rsmOnDeviceJoin', data);
+    // this.rsm.getStateDevice(data.model_name, data.device._id);
+  }
+
+  rsmOnDeviceLeave(data) {
+    console.log('rsmOnDeviceLeave', data);
+    // this.rsm.getStateDevice(data.model_name, data.device._id);
   }
 }

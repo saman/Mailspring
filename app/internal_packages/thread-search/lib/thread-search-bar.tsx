@@ -324,6 +324,9 @@ class ThreadSearchBar extends Component<
   _onGetState = () => {
     ipcRenderer.send('rsm:search', { action: 'get' });
   }
+  _onSetState = () => {
+    ipcRenderer.send('rsm:search', { action: 'send' });
+  }
 
   render() {
     const { query, isSearching, perspective } = this.props;
@@ -369,7 +372,8 @@ class ThreadSearchBar extends Component<
           onBlur={this._onBlur}
           onChange={this._onSearchQueryChanged}
         />
-        <button onClick={this._onGetState}>Get</button>
+        <button onClick={this._onGetState}>GetState</button>
+        <button onClick={this._onSetState}>SetState</button>
         {showX && (
           <RetinaImg
             name="searchclear.png"
