@@ -921,6 +921,17 @@ export default class Application extends EventEmitter {
     } else {
       console.log('rsmOnStateReceive:', 'Sender event is undefined');
     }
+
+    switch (model_name) {
+      case searchEmail.info.title:
+        const search: SearchObject = state;
+        this.rsm.setState(searchEmail.info.title, search);
+        break;
+
+      case sendingEmail.info.title:
+        break;
+    }
+
   }
 
   rsmOnStateReceive(data) {

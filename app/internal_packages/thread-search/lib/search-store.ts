@@ -3,6 +3,7 @@ import { ipcRenderer } from 'electron';
 import { Actions, AccountStore, FocusedPerspectiveStore } from 'mailspring-exports';
 import { SearchObject } from '../../../src/models/Search';
 import SearchMailboxPerspective from './search-mailbox-perspective';
+import { isObject } from 'underscore';
 
 // Stores should closely match the needs of a particular part of the front end.
 // For example, we might create a "MessageStore" that observes this store
@@ -20,6 +21,7 @@ class SearchStore extends MailspringStore {
       console.log('rsm:thread-search-bar', params);
       this._onState(params);
     });
+
     this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
     this.listenTo(Actions.searchQuerySubmitted, this._onQuerySubmitted);
     this.listenTo(Actions.searchQueryChanged, this._onQueryChanged);
@@ -78,10 +80,16 @@ class SearchStore extends MailspringStore {
 
 
   _onState = data => {
+    console.log('_onState');
+    console.log(JSON.stringify(data));
     const search: SearchObject = data;
     this._searchQuery = search.query || "";
     this.trigger();
-    ipcRenderer.send('rsm:search', { action: 'migration' });
+    // if state is not empty and there is a state
+    // tell the other app the migration is done
+    if (isObject(data) && Object.keys(data).length > 0) {
+      ipcRenderer.send('rsm:search', { action: 'migration' });
+    }
   };
 }
 
