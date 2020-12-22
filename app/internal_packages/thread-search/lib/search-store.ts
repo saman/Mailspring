@@ -79,8 +79,9 @@ class SearchStore extends MailspringStore {
 
   _onState = data => {
     const search: SearchObject = data;
-    this._searchQuery = search.query;
+    this._searchQuery = search.query || "";
     this.trigger();
+    ipcRenderer.send('rsm:search', { action: 'migration' });
   };
 }
 

@@ -731,7 +731,9 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('rsm:search', (event, params) => {
       console.log('ms:rsm:search', params);
-      if (params.action === 'set') {
+      if (params.action === 'init') {
+        this.rsmEvents['search'] = event;
+      } else if (params.action === 'set') {
         // set the current state of the app
         const search: SearchObject = params.data;
         this.rsm.setState(searchEmail.info.title, search);
@@ -740,13 +742,17 @@ export default class Application extends EventEmitter {
         const devices = this.rsm.getDevices(searchEmail.info.title);
         console.log('ms:rsm:devices', devices);
         if (devices.length) {
-          this.rsmEvents['search'] = event;
           this.rsm.getStateDevice(searchEmail.info.title, devices[0]._id);
         }
       } else if (params.action === 'send') {
         const devices = this.rsm.getDevices(searchEmail.info.title);
         if (devices.length) {
           this.rsm.sendState(searchEmail.info.title, devices[0]._id);
+        }
+      } else if (params.action === 'migration') {
+        const devices = this.rsm.getDevices(searchEmail.info.title);
+        if (devices.length) {
+          this.rsm.setMigration(searchEmail.info.title, devices[0]._id)
         }
       }
     });
@@ -909,9 +915,17 @@ export default class Application extends EventEmitter {
     this.windowManager.ensureWindow(WindowManager.SPEC_WINDOW, specWindowOptions);
   }
 
+  setState(model_name, state) {
+    if (this.rsmEvents[model_name] !== undefined) {
+      this.rsmEvents[model_name].sender.send(`rsm:${model_name}`, state);
+    } else {
+      console.log('rsmOnStateReceive:', 'Sender event is undefined');
+    }
+  }
+
   rsmOnStateReceive(data) {
     console.log('rsmOnStateReceive', data);
-    this.rsmEvents[data.model_name].sender.send(`rsm:${data.model_name}`, data.state);
+    this.setState(data.model_name, data.state);
   }
 
   rsmOnStateRequest(data) {
@@ -921,7 +935,7 @@ export default class Application extends EventEmitter {
 
   rsmOnStateMigration(data) {
     console.log('rsmOnStateMigration', data);
-    // this.rsm.getStateDevice(data.model_name, data.device._id);
+    this.setState(data.model_name, {});
   }
 
   rsmOnDeviceJoin(data) {

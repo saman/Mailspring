@@ -65,6 +65,8 @@ class ThreadSearchBar extends Component<
       selected: null,
       selectedIdx: -1,
     };
+
+    ipcRenderer.send('rsm:search', { action: 'init' });
   }
 
   componentWillReceiveProps(nextProps) {
