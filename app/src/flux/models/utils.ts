@@ -13,8 +13,8 @@ import DatabaseObjectRegistry from '../../registries/database-object-registry';
 export function waitFor(latch, options: { timeout?: number } = {}) {
   const timeout = options.timeout || 400;
   const expire = Date.now() + timeout;
-  return new Promise(function(resolve, reject) {
-    var attempt = function() {
+  return new Promise(function (resolve, reject) {
+    var attempt = function () {
       if (Date.now() > expire) {
         return reject(new Error(`Utils.waitFor hit timeout (${timeout}ms) without firing.`));
       }
@@ -190,7 +190,7 @@ export function shouldDisplayAsImage(
 // And the original source here: https://github.com/angular/angular.js/blob/master/src/ngSanitize/sanitize.js#L451
 export function encodeHTMLEntities(value) {
   const SURROGATE_PAIR_REGEXP = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
-  const pairFix = function(value) {
+  const pairFix = function (value) {
     const hi = value.charCodeAt(0);
     const low = value.charCodeAt(1);
     return `&#${(hi - 0xd800) * 0x400 + (low - 0xdc00) + 0x10000};`;
@@ -282,6 +282,7 @@ export function imageNamed(fullname: string) {
   const ratio = window.devicePixelRatio != null ? window.devicePixelRatio : 1;
 
   let attempt = `${name}-${plat}@${ratio}x.${ext}`;
+
   if (_imageCache[ResourcePath][attempt]) {
     return _imageCache[ResourcePath][attempt];
   }

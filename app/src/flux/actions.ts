@@ -492,6 +492,17 @@ export const popToRootSheet = create('popToRootSheet', ActionScopeWindow);
   */
 export const pushSheet = create('pushSheet', ActionScopeWindow);
 
+/*
+  Public: Open a new composer window for creating a new draft from scratch.
+
+  *Scope: Window*
+
+  ```
+  Actions.composeNewBlankDraft()
+  ```
+  */
+export const migrationWindow = create('migrationWindow', ActionScopeWindow);
+
 export const addMailRule = create('addMailRule', ActionScopeWindow);
 export const reorderMailRule = create('reorderMailRule', ActionScopeWindow);
 export const updateMailRule = create('updateMailRule', ActionScopeWindow);

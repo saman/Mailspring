@@ -53,6 +53,7 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.draftDeliverySucceeded, this._onSendDraftSuccess);
     this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
 
+    this.listenTo(Actions.migrationWindow, this._onPopoutMigration);
     if (AppEnv.isMainWindow()) {
       ipcRenderer.on('new-message', () => {
         Actions.composeNewBlankDraft();
@@ -530,6 +531,13 @@ class DraftStore extends MailspringStore {
         }
       }, 300);
     }
+  };
+
+  _onPopoutMigration = async () => {
+    // const draft = await DraftFactory.createDraft();
+    // const { headerMessageId } = await this._finalizeAndPersistNewMessage(draft);
+    // await this._onPopoutDraft(headerMessageId, { newDraft: true });
+    console.log('this is a rsm test');
   };
 }
 

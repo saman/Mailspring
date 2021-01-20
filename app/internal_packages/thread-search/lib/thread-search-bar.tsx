@@ -324,10 +324,10 @@ class ThreadSearchBar extends Component<
   };
 
   _onGetState = () => {
-    ipcRenderer.send('rsm:search', { action: 'get' });
+    ipcRenderer.send('rsm:search', { action: 'pull' });
   }
   _onSetState = () => {
-    ipcRenderer.send('rsm:search', { action: 'send' });
+    ipcRenderer.send('rsm:search', { action: 'push' });
   }
 
   render() {

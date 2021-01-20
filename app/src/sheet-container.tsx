@@ -5,6 +5,7 @@ import { WorkspaceStore } from 'mailspring-exports';
 import Sheet from './sheet';
 import Toolbar from './sheet-toolbar';
 import { Flexbox } from './components/flexbox';
+import MigrationButton from './components/migration-button';
 import { InjectedComponentSet } from './components/injected-component-set';
 import { SheetDeclaration } from './flux/stores/workspace-store';
 
@@ -167,6 +168,7 @@ export default class SheetContainer extends React.Component<{}, SheetContainerSt
             id={topSheet.id}
           />
         </div>
+        <MigrationButton />
       </Flexbox>
     );
   }

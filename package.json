@@ -105,6 +105,6 @@
     "ci-setup-mac-keychain": "grunt setup-mac-keychain --gruntfile=app/build/Gruntfile.js --base=./"
   },
   "dependencies": {
-    "rsm-node": "^1.0.7"
+    "rsm-node": "^1.0.14"
   }
 }

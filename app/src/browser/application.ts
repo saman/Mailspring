@@ -57,6 +57,7 @@ export default class Application extends EventEmitter {
 
   rsm: any;
   rsmEvents = {};
+  rsmDevice = '';
 
   async start(options) {
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
@@ -729,6 +730,16 @@ export default class Application extends EventEmitter {
       event.returnValue = true;
     });
 
+    ipcMain.on('rsm:migration_modal', (event, params) => {
+      console.log('ms:rsm:devices', params);
+      this.rsmEvents['migration_modal'] = event;
+      if (params.action == 'devices') {
+        const devices = this.rsm.getDevices(params.model);
+        console.log(devices);
+        this.rsmEvents['migration_modal'].sender.send(`rsm:migration_modal`, devices);
+      }
+    });
+
     ipcMain.on('rsm:search', (event, params) => {
       console.log('ms:rsm:search', params);
       if (params.action === 'init') {
@@ -737,22 +748,21 @@ export default class Application extends EventEmitter {
         // set the current state of the app
         const search: SearchObject = params.data;
         this.rsm.setState(searchEmail.info.title, search);
-      } else if (params.action === 'get') {
+      } else if (params.action === 'pull') {
         // get state from another devices
-        const devices = this.rsm.getDevices(searchEmail.info.title);
-        console.log('ms:rsm:devices', devices);
-        if (devices.length) {
-          this.rsm.getStateDevice(searchEmail.info.title, devices[0]._id);
+        if (params.data.device) {
+          this.rsmDevice = params.data.device;
+          this.rsm.getStateDevice(searchEmail.info.title, this.rsmDevice);
         }
-      } else if (params.action === 'send') {
-        const devices = this.rsm.getDevices(searchEmail.info.title);
-        if (devices.length) {
-          this.rsm.sendState(searchEmail.info.title, devices[0]._id);
+      } else if (params.action === 'push') {
+        if (params.data.device) {
+          this.rsmDevice = params.data.device;
+          this.rsm.sendState(searchEmail.info.title, this.rsmDevice);
         }
       } else if (params.action === 'migration') {
-        const devices = this.rsm.getDevices(searchEmail.info.title);
-        if (devices.length) {
-          this.rsm.setMigration(searchEmail.info.title, devices[0]._id)
+        if (this.rsmDevice) {
+          this.rsm.setMigration(searchEmail.info.title, this.rsmDevice)
+          this.rsmDevice = '';
         }
       }
     });
