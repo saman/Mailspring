@@ -6,32 +6,23 @@ import Webview from './webview';
 import { IdentityStore } from '../flux/stores/identity-store';
 import { Flexbox, ScrollRegion } from 'mailspring-component-kit';
 import { ipcRenderer, app } from 'electron';
-import MigrationStore from '../flux/stores/migration-store';
-import {
-  localized,
-  Actions,
-  FocusedPerspectiveStore,
-  WorkspaceStore,
-  MailboxPerspective,
 
-} from 'mailspring-exports';
-import { ListensToFluxStore, RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
+
+
 type MigarationModalProps = {
   devices?: [];
-};
-
-type MigarationModalState = {
-  device: string;
   method: string;
   model: string;
 };
 
-export const MigrationModalConfig = {
-  IntrinsicWidth: 412,
-  IntrinsicHeight: 250,
+type MigarationModalState = {
+  device: string;
+  // devices: [];
+};
 
-}
-class MigrationModal extends React.Component<MigarationModalProps, MigarationModalState> {
+export default class MigrationModal extends React.Component<MigarationModalProps, MigarationModalState> {
+  static IntrinsicWidth = 412;
+  static IntrinsicHeight = 250;
 
   _mounted: boolean = false;
   _initialZoom: number;
@@ -40,16 +31,11 @@ class MigrationModal extends React.Component<MigarationModalProps, MigarationMod
     super(props);
     this.state = {
       device: '',
-      method: 'pull',
-      model: 'search'
+      // devices: [],
     };
   }
 
   componentWillMount() {
-    ipcRenderer.send('rsm:migration_modal', { action: 'devices', model: 'search' });
-    // if (!this.state.src) {
-
-    // }
   }
 
   componentDidMount() {
@@ -67,10 +53,17 @@ class MigrationModal extends React.Component<MigarationModalProps, MigarationMod
     this._mounted = false;
   }
 
+
+  // componentWillReceiveProps(nextProps) {
+  //   console.log('nextProps-modal', nextProps);
+  //   this.setState({ devices: nextProps.devices });
+  // }
+
   _onMigrate = () => {
     // alert('migrate');
     const { device } = this.state;
-    ipcRenderer.send(`rsm:${this.state.model}`, { action: this.state.method, data: { device } });
+    const { model, method } = this.props;
+    ipcRenderer.send(`rsm:${model}`, { action: method, data: { device } });
   }
 
   _onDeviceChange = (e) => {
@@ -82,14 +75,16 @@ class MigrationModal extends React.Component<MigarationModalProps, MigarationMod
 
 
   render() {
-    const { devices } = this.props;
+    const { model, method, devices } = this.props;
+    // const { devices } = this.state;
+    console.log('devices', devices);
     return (
       <div className="modal-wrap migaration-modal" tabIndex={1}>
         <Flexbox direction="column">
           <h4 style={{ color: '#434648' }}>Run-time State Migration</h4>
           {/* <p>Migration Method: {this.state.method}</p> */}
           {/* <p>Migration Model: {this.state.model}</p> */}
-          <p>You are migrating the data of <b>{this.state.model}</b> {this.state.method == 'pull' ? 'from' : 'to'} a device.</p>
+          <p>You are migrating the data of <b>{model}</b> {method == 'pull' ? 'from' : 'to'} a device.</p>
           <div style={{ color: 'rgba(35, 31, 32, 0.5)', fontSize: '12px' }}>Please select a device</div>
           <ScrollRegion style={{ margin: '0 30px', height: '100px' }}>
             <Flexbox
@@ -115,14 +110,3 @@ class MigrationModal extends React.Component<MigarationModalProps, MigarationMod
   }
 }
 
-
-export default ListensToFluxStore(MigrationModal, {
-  stores: [MigrationStore, FocusedPerspectiveStore],
-  getStateFromStores() {
-    return {
-      devices: MigrationStore.devices(),
-      // isSearching: SearchStore.isSearching(),
-      perspective: FocusedPerspectiveStore.current(),
-    };
-  },
-});

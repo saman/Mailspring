@@ -10,7 +10,6 @@ import {
   InflatesDraftClientId,
 } from 'mailspring-exports';
 import ComposeButton from './compose-button';
-import MigrationButton from './migration-button';
 import ComposerView from './composer-view';
 
 const ComposerViewForDraftClientId = InflatesDraftClientId(ComposerView);
@@ -89,9 +88,6 @@ export function activate() {
     ComponentRegistry.register(ComposeButton, {
       location: WorkspaceStore.Location.RootSidebar.Toolbar,
     });
-    ComponentRegistry.register(MigrationButton, {
-      location: WorkspaceStore.Location.RootSidebar.Toolbar,
-    });
   } else if (AppEnv.isThreadWindow()) {
     ComponentRegistry.register(ComposerViewForDraftClientId, {
       role: 'Composer',
@@ -118,7 +114,6 @@ export function deactivate() {
   if (AppEnv.isMainWindow()) {
     ComponentRegistry.unregister(ComposerViewForDraftClientId);
     ComponentRegistry.unregister(ComposeButton);
-    ComponentRegistry.unregister(MigrationButton);
   } else {
     ComponentRegistry.unregister(ComposerWithWindowProps);
   }

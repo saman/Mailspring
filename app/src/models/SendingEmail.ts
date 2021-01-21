@@ -11,15 +11,19 @@ export interface SendingEmailObject {
     /**
      * The body text of the email
      */
-    body: string;
+    body?: string;
     /**
      * The sender email
      */
-    from: string;
+    from?: string;
+    /**
+     * The subject text of the email
+     */
+    subject?: string;
     /**
      * The reciever email
      */
-    to: string;
+    to?: string;
 }
 
 // Converts JSON strings to/from your types
@@ -168,8 +172,9 @@ function r(name: string) {
 
 const typeMap: any = {
     "SendingEmailObject": o([
-        { json: "body", js: "body", typ: "" },
-        { json: "from", js: "from", typ: "" },
-        { json: "to", js: "to", typ: "" },
+        { json: "body", js: "body", typ: u(undefined, "") },
+        { json: "from", js: "from", typ: u(undefined, "") },
+        { json: "subject", js: "subject", typ: u(undefined, "") },
+        { json: "to", js: "to", typ: u(undefined, "") },
     ], "any"),
 };

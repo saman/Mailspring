@@ -12,6 +12,7 @@ import { isObject } from 'underscore';
 
 class SearchStore extends MailspringStore {
   _searchQuery = (FocusedPerspectiveStore.current() as any).searchQuery || '';
+  _submit = false;
   _isSearching = false;
   _perspectiveBeforeSearch = null;
 
@@ -26,6 +27,10 @@ class SearchStore extends MailspringStore {
     this.listenTo(Actions.searchQuerySubmitted, this._onQuerySubmitted);
     this.listenTo(Actions.searchQueryChanged, this._onQueryChanged);
     this.listenTo(Actions.searchCompleted, this._onSearchCompleted);
+  }
+
+  submit() {
+    return this._submit;
   }
 
   query() {
@@ -52,6 +57,7 @@ class SearchStore extends MailspringStore {
 
   _onQueryChanged = query => {
     this._searchQuery = query;
+    this._submit = false;
     this.trigger();
   };
 
@@ -84,6 +90,7 @@ class SearchStore extends MailspringStore {
     console.log(JSON.stringify(data));
     const search: SearchObject = data;
     this._searchQuery = search.query || "";
+    this._submit = search.submit || false;
     this.trigger();
     // if state is not empty and there is a state
     // tell the other app the migration is done

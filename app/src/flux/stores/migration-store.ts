@@ -18,7 +18,9 @@ class MigrationStore extends MailspringStore {
 
   constructor() {
     super();
-    ipcRenderer.on('rsm:migration_modal', (event, params) => {
+    ipcRenderer.on('rsm:migration_store', (event, params) => {
+      console.log('rsm:migration_store');
+      // console.log(JSON.stringify(params));
       this._devices = params;
       this.trigger();
     });

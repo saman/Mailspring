@@ -1,28 +1,105 @@
 import React from 'react';
-import { localized, Actions } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
-import MigrationModal, { MigrationModalConfig } from '../components/migration-modal';
+import MigrationModal from '../components/migration-modal';
+import MigrationStore from '../flux/stores/migration-store';
+import { ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
+import { localized, Actions, FocusedPerspectiveStore } from 'mailspring-exports';
+import { ipcRenderer, app } from 'electron';
 
-export default class MigrationButton extends React.Component {
+type MigarationButtonProps = {
+  devices?: [];
+};
+
+type MigarationButtonState = {
+  model: string;
+  devices?: [];
+  showButtons: boolean;
+};
+
+export class MigrationButton extends React.Component<MigarationButtonProps, MigarationButtonState> {
   static displayName = 'MigrationButton';
 
-  _onMigration = () => {
-    // Actions.migrationWindow();
 
-    Actions.openModal({
-      component: <MigrationModal />,
-      width: MigrationModalConfig.IntrinsicWidth,
-      height: MigrationModalConfig.IntrinsicHeight,
-    });
+  constructor(props) {
+    super(props);
+    this.state = {
+      model: 'search',
+      showButtons: false,
+    };
+  }
+
+  componentWillMount() {
+    console.log('componentWillMount');
+    ipcRenderer.send('rsm:migration_store', { action: 'init' });
+    // if (!this.state.src) {
+
+    // }
+  }
+
+  componentDidMount() {
+    console.log('componentDidMount');
+  }
+
+  componentWillReceiveProps(nextProps) {
+    console.log('nextProps-button', nextProps);
+    this.setState({ devices: nextProps.devices });
+  }
+
+  _onMigrationModal = (method: string) => {
+    const showButtons = !this.state.showButtons;
+    this.setState({ showButtons });
+    const { model } = this.state;
+    let { devices } = this.state;
+    console.log('_onMigrationModal', devices);
+    if (method == 'pull') {
+      // @ts-ignore
+      devices = devices.filter(d => d.models_has_state.includes(model))
+    }
+
+    if (devices.length) {
+      Actions.openModal({
+        component: <MigrationModal devices={devices} method={method} model={model} />,
+        width: MigrationModal.IntrinsicWidth,
+        height: MigrationModal.IntrinsicHeight,
+      });
+    } else {
+      alert('There is no device at the moment');
+    }
+
   };
+
+  _onMigrationButton = () => {
+    const showButtons = !this.state.showButtons;
+    this.setState({ showButtons });
+    if (showButtons) {
+      ipcRenderer.send('rsm:migration_store', { action: 'devices', model: this.state.model });
+    }
+  }
 
   render() {
     return (
-      <div className="migration-btn">
+      <div className="migration-btn" style={{ display: 'none' }}>
+        {this.state.showButtons ?
+          <div>
+            <button
+              className="float small get"
+              title={localized('Get Data')}
+              onClick={() => this._onMigrationModal('pull')}
+            >
+              <RetinaImg name="migration-icon-get.png" mode={RetinaImg.Mode.ContentPreserve} />
+            </button>
+            <button
+              className="float small set"
+              title={localized('Set Data')}
+              onClick={() => this._onMigrationModal('push')}
+            >
+              <RetinaImg name="migration-icon-set.png" mode={RetinaImg.Mode.ContentPreserve} />
+            </button>
+          </div>
+          : null}
         <button
-          style={{ display: 'none' }} className="float"
-          title={localized('Run-time Migration')}
-          onClick={this._onMigration}
+          className="float"
+          title={localized('Migration')}
+          onClick={this._onMigrationButton}
         >
           <RetinaImg name="migration-icon.png" mode={RetinaImg.Mode.ContentPreserve} />
         </button>
@@ -30,3 +107,13 @@ export default class MigrationButton extends React.Component {
     );
   }
 }
+
+export default ListensToFluxStore(MigrationButton, {
+  stores: [MigrationStore, FocusedPerspectiveStore],
+  getStateFromStores() {
+    return {
+      devices: MigrationStore.devices(),
+      perspective: FocusedPerspectiveStore.current(),
+    };
+  },
+});

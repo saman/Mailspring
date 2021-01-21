@@ -29,6 +29,7 @@ class ThreadSearchBar extends Component<
     query: string;
     isSearching: boolean;
     perspective: MailboxPerspective;
+    submit: boolean;
   },
   {
     suggestions: {
@@ -50,6 +51,7 @@ class ThreadSearchBar extends Component<
     query: PropTypes.string,
     isSearching: PropTypes.bool,
     perspective: PropTypes.object,
+    submit: PropTypes.bool,
   };
 
   _fieldEl: TokenizingContenteditable;
@@ -70,10 +72,18 @@ class ThreadSearchBar extends Component<
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log('ThreadSearchBar', nextProps);
-    if (nextProps.query !== this.props.query) {
-      this._generateSuggestionsForQuery(nextProps.query);
+    if (nextProps.query !== this.props.query || nextProps.submit !== this.props.submit) {
+      if (nextProps.query !== this.props.query) {
+        this._generateSuggestionsForQuery(nextProps.query);
+      }
+
+      // submit if submit button got git from another app
+      if (nextProps.submit == true) {
+        this._onClearSearchQuery();
+        this._onSubmitSearchQuery(nextProps.query);
+      }
     }
+
   }
 
   _initialQueryForPerspective() {
@@ -275,7 +285,7 @@ class ThreadSearchBar extends Component<
     if (query === this.props.query) {
       return;
     }
-    ipcRenderer.send('rsm:search', { action: 'set', data: { query } })
+    ipcRenderer.send('rsm:search', { action: 'set', data: { query, submit: false } })
     Actions.searchQueryChanged(query);
     if (query === '') {
       this._onClearSearchQuery();
@@ -300,6 +310,7 @@ class ThreadSearchBar extends Component<
   };
 
   _onSubmitSearchQuery = nextQuery => {
+    ipcRenderer.send('rsm:search', { action: 'set', data: { query: nextQuery, submit: true } })
     Actions.searchQuerySubmitted(nextQuery);
     this._fieldEl.blur();
   };
@@ -322,13 +333,6 @@ class ThreadSearchBar extends Component<
     }
     return localized(`Search`) + ' ' + this.props.perspective.name || '';
   };
-
-  _onGetState = () => {
-    ipcRenderer.send('rsm:search', { action: 'pull' });
-  }
-  _onSetState = () => {
-    ipcRenderer.send('rsm:search', { action: 'push' });
-  }
 
   render() {
     const { query, isSearching, perspective } = this.props;
@@ -374,8 +378,6 @@ class ThreadSearchBar extends Component<
           onBlur={this._onBlur}
           onChange={this._onSearchQueryChanged}
         />
-        <button onClick={this._onGetState}>GetState</button>
-        <button onClick={this._onSetState}>SetState</button>
         {showX && (
           <RetinaImg
             name="searchclear.png"
@@ -414,7 +416,7 @@ class ThreadSearchBar extends Component<
                       e.preventDefault();
                     }}
                   >
-                    {localized('Learn more')} >
+                    {localized('Learn more')}
                   </a>
                 </div>
               )}
@@ -430,6 +432,7 @@ export default ListensToFluxStore(ThreadSearchBar, {
   getStateFromStores() {
     return {
       query: SearchStore.query(),
+      submit: SearchStore.submit(),
       isSearching: SearchStore.isSearching(),
       perspective: FocusedPerspectiveStore.current(),
     };

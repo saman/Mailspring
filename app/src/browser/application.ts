@@ -730,13 +730,14 @@ export default class Application extends EventEmitter {
       event.returnValue = true;
     });
 
-    ipcMain.on('rsm:migration_modal', (event, params) => {
+    ipcMain.on('rsm:migration_store', (event, params) => {
       console.log('ms:rsm:devices', params);
-      this.rsmEvents['migration_modal'] = event;
-      if (params.action == 'devices') {
+      if (params.action === 'init') {
+        this.rsmEvents['migration_store'] = event;
+      } else if (params.action == 'devices') {
         const devices = this.rsm.getDevices(params.model);
         console.log(devices);
-        this.rsmEvents['migration_modal'].sender.send(`rsm:migration_modal`, devices);
+        this.rsmEvents['migration_store'].sender.send(`rsm:migration_store`, devices);
       }
     });
 
@@ -745,21 +746,25 @@ export default class Application extends EventEmitter {
       if (params.action === 'init') {
         this.rsmEvents['search'] = event;
       } else if (params.action === 'set') {
+        console.log('ms:rsm:search', 'set')
         // set the current state of the app
         const search: SearchObject = params.data;
         this.rsm.setState(searchEmail.info.title, search);
       } else if (params.action === 'pull') {
         // get state from another devices
+        console.log('ms:rsm:search', 'pull')
         if (params.data.device) {
           this.rsmDevice = params.data.device;
           this.rsm.getStateDevice(searchEmail.info.title, this.rsmDevice);
         }
       } else if (params.action === 'push') {
+        console.log('ms:rsm:search', 'push')
         if (params.data.device) {
           this.rsmDevice = params.data.device;
           this.rsm.sendState(searchEmail.info.title, this.rsmDevice);
         }
       } else if (params.action === 'migration') {
+        console.log('ms:rsm:search', 'migration')
         if (this.rsmDevice) {
           this.rsm.setMigration(searchEmail.info.title, this.rsmDevice)
           this.rsmDevice = '';

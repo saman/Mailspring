@@ -12,6 +12,10 @@ export interface SearchObject {
      * the query of search
      */
     query: string;
+    /**
+     * shows if the query is already has been submitted
+     */
+    submit?: boolean;
 }
 
 // Converts JSON strings to/from your types
@@ -161,5 +165,6 @@ function r(name: string) {
 const typeMap: any = {
     "SearchObject": o([
         { json: "query", js: "query", typ: "" },
+        { json: "submit", js: "submit", typ: u(undefined, true) },
     ], "any"),
 };
