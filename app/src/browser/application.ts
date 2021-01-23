@@ -733,8 +733,8 @@ export default class Application extends EventEmitter {
     ipcMain.on('rsm:migration_store', (event, params) => {
       console.log('ms:rsm:devices', params);
       if (params.action === 'init') {
-        this.rsmEvents['migration_store'] = event;
-      } else if (params.action == 'devices') {
+        this.rsmEvents[`migration_store`] = event;
+      } else if (params.action == 'devices' && params.model != undefined) {
         const devices = this.rsm.getDevices(params.model);
         console.log(devices);
         this.rsmEvents['migration_store'].sender.send(`rsm:migration_store`, devices);
@@ -764,9 +764,44 @@ export default class Application extends EventEmitter {
           this.rsm.sendState(searchEmail.info.title, this.rsmDevice);
         }
       } else if (params.action === 'migration') {
-        console.log('ms:rsm:search', 'migration')
+        console.log('ms:rsm:search', 'migration');
         if (this.rsmDevice) {
-          this.rsm.setMigration(searchEmail.info.title, this.rsmDevice)
+          this.rsm.setMigration(searchEmail.info.title, this.rsmDevice);
+          this.rsmDevice = '';
+        }
+      }
+    });
+
+    ipcMain.on('rsm:sending-email', (event, params) => {
+      const title = sendingEmail.info.title;
+      const TAG = `rsm:${title}`;
+
+      console.log(TAG, params);
+      if (params.action === 'init') {
+        this.rsmEvents[title] = event;
+      } else if (params.action === 'set') {
+        console.log(TAG, 'set')
+        // set the current state of the app
+        // const search: SearchObject = params.data;
+        const sendingEmailData: SendingEmailObject = params.data;
+        this.rsm.setState(title, sendingEmailData);
+      } else if (params.action === 'pull') {
+        // get state from another devices
+        console.log(TAG, 'pull')
+        if (params.data.device) {
+          this.rsmDevice = params.data.device;
+          this.rsm.getStateDevice(title, this.rsmDevice);
+        }
+      } else if (params.action === 'push') {
+        console.log(TAG, 'push')
+        if (params.data.device) {
+          this.rsmDevice = params.data.device;
+          this.rsm.sendState(title, this.rsmDevice);
+        }
+      } else if (params.action === 'migration') {
+        console.log(TAG, 'migration', this.rsmDevice);
+        if (this.rsmDevice) {
+          this.rsm.setMigration(title, this.rsmDevice);
           this.rsmDevice = '';
         }
       }
@@ -951,6 +986,7 @@ export default class Application extends EventEmitter {
 
   rsmOnStateReceive(data) {
     console.log('rsmOnStateReceive', data);
+    this.rsmDevice = data.device._id;
     this.setState(data.model_name, data.state);
   }
 

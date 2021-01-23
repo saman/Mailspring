@@ -7,10 +7,10 @@ import { ipcRenderer, app } from 'electron';
 
 type MigarationButtonProps = {
   devices?: [];
+  model: string;
 };
 
 type MigarationButtonState = {
-  model: string;
   devices?: [];
   showButtons: boolean;
 };
@@ -22,14 +22,13 @@ export class MigrationButton extends React.Component<MigarationButtonProps, Miga
   constructor(props) {
     super(props);
     this.state = {
-      model: 'search',
       showButtons: false,
     };
   }
 
   componentWillMount() {
     console.log('componentWillMount');
-    ipcRenderer.send('rsm:migration_store', { action: 'init' });
+    ipcRenderer.send('rsm:migration_store', { action: 'init', model: this.props.model });
     // if (!this.state.src) {
 
     // }
@@ -41,13 +40,14 @@ export class MigrationButton extends React.Component<MigarationButtonProps, Miga
 
   componentWillReceiveProps(nextProps) {
     console.log('nextProps-button', nextProps);
+    console.log(JSON.stringify(nextProps));
     this.setState({ devices: nextProps.devices });
   }
 
   _onMigrationModal = (method: string) => {
     const showButtons = !this.state.showButtons;
     this.setState({ showButtons });
-    const { model } = this.state;
+    const { model } = this.props;
     let { devices } = this.state;
     console.log('_onMigrationModal', devices);
     if (method == 'pull') {
@@ -71,7 +71,7 @@ export class MigrationButton extends React.Component<MigarationButtonProps, Miga
     const showButtons = !this.state.showButtons;
     this.setState({ showButtons });
     if (showButtons) {
-      ipcRenderer.send('rsm:migration_store', { action: 'devices', model: this.state.model });
+      ipcRenderer.send('rsm:migration_store', { action: 'devices', model: this.props.model });
     }
   }
 

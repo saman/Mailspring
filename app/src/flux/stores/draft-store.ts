@@ -17,6 +17,9 @@ import MessageBodyProcessor from './message-body-processor';
 import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import { localized } from '../../intl';
+import { SendingEmailObject } from '../../../src/models/SendingEmail';
+import { isObject, isArray } from 'underscore';
+import { Contact } from '../models/contact';
 
 interface IThreadMessageModelOrId {
   thread?: Thread;
@@ -43,6 +46,12 @@ class DraftStore extends MailspringStore {
 
   constructor() {
     super();
+
+    ipcRenderer.on('rsm:sending-email', (event, params) => {
+      // console.log('rsm:draft-store', params);
+      this._onState(params);
+    });
+
     this.listenTo(DatabaseStore, this._onDataChanged);
     this.listenTo(Actions.composeReply, this._onComposeReply);
     this.listenTo(Actions.composeForward, this._onComposeForward);
@@ -52,13 +61,6 @@ class DraftStore extends MailspringStore {
     this.listenTo(Actions.draftDeliveryFailed, this._onSendDraftFailed);
     this.listenTo(Actions.draftDeliverySucceeded, this._onSendDraftSuccess);
     this.listenTo(Actions.sendQuickReply, this._onSendQuickReply);
-
-    this.listenTo(Actions.migrationWindow, this._onPopoutMigration);
-    if (AppEnv.isMainWindow()) {
-      ipcRenderer.on('new-message', () => {
-        Actions.composeNewBlankDraft();
-      });
-    }
 
     // Remember that these two actions only fire in the current window and
     // are picked up by the instance of the DraftStore in the current
@@ -533,12 +535,39 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onPopoutMigration = async () => {
-    // const draft = await DraftFactory.createDraft();
-    // const { headerMessageId } = await this._finalizeAndPersistNewMessage(draft);
-    // await this._onPopoutDraft(headerMessageId, { newDraft: true });
-    console.log('this is a rsm test');
+  _onState = async data => {
+    console.log('_onState');
+    console.log(JSON.stringify(data));
+    const sendingEmail: SendingEmailObject = data;
+    console.log(this._draftSessions);
+
+    const headerMessageId = Object.keys(this._draftSessions)[Object.keys(this._draftSessions).length - 1];
+    let session = this._draftSessions[headerMessageId];
+    let draft = session._draft;
+    // if state is not empty and there is a state
+    // tell the other app the migration is done
+    if (isObject(data) && Object.keys(data).length > 0) {
+      draft.subject = sendingEmail.subject;
+      draft.body = sendingEmail.body;
+      draft.to = [];
+      if (isArray(sendingEmail.to) !== undefined) {
+        sendingEmail.to.split(',').forEach(c => {
+          draft.to.push(new Contact({ email: c }))
+        });
+      }
+      draft.from = [new Contact({ email: sendingEmail.from })];
+
+      console.log('sending-email-migration');
+      ipcRenderer.send('rsm:sending-email', { action: 'migration' });
+    } else {
+      // this._draftSessions[headerMessageId].teardown();
+      this.sessionForClientId(headerMessageId);
+      console.log('CLEAN');
+    }
+    this.trigger();
   };
+
+
 }
 
 export default new DraftStore();

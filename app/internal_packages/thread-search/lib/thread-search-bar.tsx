@@ -22,7 +22,9 @@ import {
   wrapInQuotes,
 } from './search-bar-util';
 
-import { ipcRenderer, app } from 'electron';
+import { ipcRenderer } from 'electron';
+
+import MigrationButton from '../../../src/components/migration-button';
 
 class ThreadSearchBar extends Component<
   {
@@ -422,6 +424,7 @@ class ThreadSearchBar extends Component<
               )}
             </div>
           )}
+        <MigrationButton model="search" />
       </KeyCommandsRegion>
     );
   }

@@ -1,20 +1,6 @@
 import { remote } from 'electron';
 var request = require('request');
 
-// request.get('https://rsm-server.herokuapp.com/devices', {}, function (err, res, body) {
-//   console.log(res);
-// });
-
-// const request = net.request({
-//   method: 'GET',
-//   protocol: 'https:',
-//   hostname: 'rsm-server.herokuapp.com/',
-//   port: 443,
-//   path: '/'
-// })
-
-console.log('net', remote);
-import AsmlValidator from 'asml-validator';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {
@@ -44,6 +30,11 @@ import { AttachmentsArea } from './attachments-area';
 import { QuotedTextControl } from './quoted-text-control';
 import Fields from './fields';
 
+import MigrationButton from '../../../src/components/migration-button';
+import { SendingEmailObject } from '../../../src/models/SendingEmail';
+
+import { ipcRenderer } from 'electron';
+
 const {
   hasBlockquote,
   hasNonTrailingBlockquote,
@@ -65,7 +56,7 @@ interface ComposerViewState {
 // Composer with new props.
 export default class ComposerView extends React.Component<ComposerViewProps, ComposerViewState> {
   static displayName = 'ComposerView';
-  private asml = new AsmlValidator();
+
   static propTypes = {
     session: PropTypes.object.isRequired,
     draft: PropTypes.object.isRequired,
@@ -104,13 +95,23 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
       quotedTextHidden: hideQuotedTextByDefault(draft),
     };
+
+    ipcRenderer.send('rsm:sending-email', { action: 'init' });
   }
 
+  componentWillReceiveProps(nextProps) {
+    const sendingEmail: SendingEmailObject = {
+      from: nextProps.draft.from[0].email,
+      to: nextProps.draft.to.join(','),
+      subject: nextProps.draft.subject,
+      body: nextProps.draft.body,
+    }
+    console.log('draft-componentWillReceiveProps', sendingEmail);
+    ipcRenderer.send('rsm:sending-email', { action: 'set', data: { ...sendingEmail } });
+  }
   componentDidMount() {
     const { date, files } = this.props.draft;
 
-    console.log('validate-saman', this.asml.validate({}, {}));
-    console.log('validate-saman', this.asml.errors);
     this._mounted = true;
 
     files.forEach(file => {
@@ -164,7 +165,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
     const { quotedTextHidden, quotedTextPresent } = this.state;
     const { draft, session } = this.props;
-    console.log("draf", JSON.stringify(draft, null, 5))
+    // console.log("draf", JSON.stringify(draft, null, 5))
     return (
       <div className={`composer-centered ${restrictWidth && 'restrict-width'}`}>
         <ComposerHeader ref={this.header} draft={draft} session={session} />
@@ -238,6 +239,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
             />
           </div>
         </div>
+        <MigrationButton model="sending-email" />
       </div>
     );
   }

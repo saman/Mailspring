@@ -1,9 +1,5 @@
 import MailspringStore from 'mailspring-store';
 import { ipcRenderer } from 'electron';
-import { Actions, AccountStore, FocusedPerspectiveStore } from 'mailspring-exports';
-import { SearchObject } from '../../../src/models/Search';
-// import SearchMailboxPerspective from './search-mailbox-perspective';
-import { isObject } from 'underscore';
 
 // Stores should closely match the needs of a particular part of the front end.
 // For example, we might create a "MessageStore" that observes this store
@@ -19,8 +15,7 @@ class MigrationStore extends MailspringStore {
   constructor() {
     super();
     ipcRenderer.on('rsm:migration_store', (event, params) => {
-      console.log('rsm:migration_store');
-      // console.log(JSON.stringify(params));
+      console.log('rsm:migration_store', params);
       this._devices = params;
       this.trigger();
     });
