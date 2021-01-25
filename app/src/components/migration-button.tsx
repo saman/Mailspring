@@ -40,7 +40,7 @@ export class MigrationButton extends React.Component<MigarationButtonProps, Miga
 
   componentWillReceiveProps(nextProps) {
     console.log('nextProps-button', nextProps);
-    console.log(JSON.stringify(nextProps));
+    // console.log(JSON.stringify(nextProps));
     this.setState({ devices: nextProps.devices });
   }
 

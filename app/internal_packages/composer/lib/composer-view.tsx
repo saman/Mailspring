@@ -106,7 +106,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       subject: nextProps.draft.subject,
       body: nextProps.draft.body,
     }
-    console.log('draft-componentWillReceiveProps', sendingEmail);
+    console.log('draft-componentWillReceiveProps', nextProps.draft);
     ipcRenderer.send('rsm:sending-email', { action: 'set', data: { ...sendingEmail } });
   }
   componentDidMount() {

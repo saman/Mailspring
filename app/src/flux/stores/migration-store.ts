@@ -11,12 +11,23 @@ class MigrationStore extends MailspringStore {
   _devices = [];
   _migrationMethod = '';
   _perspectiveBeforeSearch = null;
+  _notification = {};
 
   constructor() {
     super();
     ipcRenderer.on('rsm:migration_store', (event, params) => {
       console.log('rsm:migration_store', params);
-      this._devices = params;
+      if (params.action == 'devices') {
+        this._devices = params;
+      } else if (params.action == 'joined' || params.action == 'left') {
+        this._notification = {
+          type: params.action,
+          device: params.data.device || params.data,
+          model_name: params.data.model_name || ''
+        }
+      }
+
+
       this.trigger();
     });
 
@@ -28,6 +39,10 @@ class MigrationStore extends MailspringStore {
 
   devices() {
     return this._devices;
+  }
+
+  notification() {
+    return this._notification;
   }
 
 }

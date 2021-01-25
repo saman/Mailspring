@@ -730,14 +730,21 @@ export default class Application extends EventEmitter {
       event.returnValue = true;
     });
 
+    ipcMain.on('rsm:migration_store:notification', (event, params) => {
+      if (params.action === 'init') {
+        this.rsmEvents[`migration_store_notification`] = event;
+      }
+    });
+
     ipcMain.on('rsm:migration_store', (event, params) => {
       console.log('ms:rsm:devices', params);
       if (params.action === 'init') {
-        this.rsmEvents[`migration_store`] = event;
+        this.rsmEvents[`migration_store:${params.model}`] = event;
       } else if (params.action == 'devices' && params.model != undefined) {
         const devices = this.rsm.getDevices(params.model);
+        console.log('rsm:migration_store:devices')
         console.log(devices);
-        this.rsmEvents['migration_store'].sender.send(`rsm:migration_store`, devices);
+        this.rsmEvents[`migration_store:${params.model}`].sender.send(`rsm:migration_store`, { action: 'devices', devices });
       }
     });
 
@@ -1002,10 +1009,12 @@ export default class Application extends EventEmitter {
 
   rsmOnDeviceJoin(data) {
     console.log('rsmOnDeviceJoin', data);
+    this.rsmEvents['migration_store_notification'].sender.send(`rsm:migration_store`, { action: 'joined', data });
     // this.rsm.getStateDevice(data.model_name, data.device._id);
   }
 
   rsmOnDeviceLeave(data) {
+    this.rsmEvents['migration_store_notification'].sender.send(`rsm:migration_store`, { action: 'left', data });
     console.log('rsmOnDeviceLeave', data);
     // this.rsm.getStateDevice(data.model_name, data.device._id);
   }

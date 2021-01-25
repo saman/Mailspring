@@ -2,11 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { webFrame } from 'electron';
 import Webview from './webview';
-// import * as Actions from '../flux/actions';
 import { IdentityStore } from '../flux/stores/identity-store';
 import { Flexbox, ScrollRegion } from 'mailspring-component-kit';
 import { ipcRenderer, app } from 'electron';
-
+import { Actions, NativeNotifications } from 'mailspring-exports';
 
 
 type MigarationModalProps = {
@@ -62,8 +61,15 @@ export default class MigrationModal extends React.Component<MigarationModalProps
   _onMigrate = () => {
     // alert('migrate');
     const { device } = this.state;
-    const { model, method } = this.props;
-    ipcRenderer.send(`rsm:${model}`, { action: method, data: { device } });
+
+    if (device.length) {
+      const { model, method } = this.props;
+      ipcRenderer.send(`rsm:${model}`, { action: method, data: { device } });
+
+      Actions.closeModal();
+    } else {
+      alert('Please select a device');
+    }
   }
 
   _onDeviceChange = (e) => {
@@ -71,7 +77,6 @@ export default class MigrationModal extends React.Component<MigarationModalProps
       device: e.currentTarget.value
     });
   }
-
 
 
   render() {

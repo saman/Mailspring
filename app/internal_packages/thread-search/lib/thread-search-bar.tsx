@@ -10,6 +10,7 @@ import {
 } from 'mailspring-exports';
 import SearchStore from './search-store';
 import TokenizingContenteditable from './tokenizing-contenteditable';
+import MigrationNotification from '../../../src/components/migration-notification';
 
 import {
   LearnMoreURL,
@@ -74,8 +75,12 @@ class ThreadSearchBar extends Component<
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log('componentWillReceiveProps', nextProps);
     if (nextProps.query !== this.props.query || nextProps.submit !== this.props.submit) {
       if (nextProps.query !== this.props.query) {
+        if (nextProps.query == '') {
+          this._onClearSearchQuery();
+        }
         this._generateSuggestionsForQuery(nextProps.query);
       }
 
@@ -425,6 +430,7 @@ class ThreadSearchBar extends Component<
             </div>
           )}
         <MigrationButton model="search" />
+        <MigrationNotification />
       </KeyCommandsRegion>
     );
   }

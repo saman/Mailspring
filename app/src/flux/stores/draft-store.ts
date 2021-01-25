@@ -555,14 +555,20 @@ class DraftStore extends MailspringStore {
           draft.to.push(new Contact({ email: c }))
         });
       }
-      draft.from = [new Contact({ email: sendingEmail.from })];
+      // draft.from = [new Contact({ email: sendingEmail.from })];
 
       console.log('sending-email-migration');
       ipcRenderer.send('rsm:sending-email', { action: 'migration' });
     } else {
-      // this._draftSessions[headerMessageId].teardown();
-      this.sessionForClientId(headerMessageId);
-      console.log('CLEAN');
+      // const newDraft = await DraftFactory.createDraft();
+      // draft.subject = newDraft.subject;
+      // draft.to = newDraft.to;
+      // console.log(newDraft.from)
+      // // draft.from = [new Contact({ email: newDraft.from[0].email })];
+      // draft.body = newDraft.body;
+
+      // console.log('CLEAN');
+      this._onDestroyDraft(draft);
     }
     this.trigger();
   };
