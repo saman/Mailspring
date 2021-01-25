@@ -18,7 +18,7 @@ class MigrationStore extends MailspringStore {
     ipcRenderer.on('rsm:migration_store', (event, params) => {
       console.log('rsm:migration_store', params);
       if (params.action == 'devices') {
-        this._devices = params;
+        this._devices = params.devices;
       } else if (params.action == 'joined' || params.action == 'left') {
         this._notification = {
           type: params.action,

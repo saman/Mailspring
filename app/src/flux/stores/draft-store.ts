@@ -544,11 +544,13 @@ class DraftStore extends MailspringStore {
     const headerMessageId = Object.keys(this._draftSessions)[Object.keys(this._draftSessions).length - 1];
     let session = this._draftSessions[headerMessageId];
     let draft = session._draft;
+    console.log(draft);
     // if state is not empty and there is a state
     // tell the other app the migration is done
     if (isObject(data) && Object.keys(data).length > 0) {
       draft.subject = sendingEmail.subject;
-      draft.body = sendingEmail.body;
+      // draft.body = sendingEmail.body;
+      draft.body = sendingEmail.body.replace(/(<([^>]+)>)/ig, '');
       draft.to = [];
       if (isArray(sendingEmail.to) !== undefined) {
         sendingEmail.to.split(',').forEach(c => {

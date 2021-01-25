@@ -4,6 +4,7 @@ import MigrationStore from '../flux/stores/migration-store';
 import { ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
 import { localized, Actions, FocusedPerspectiveStore } from 'mailspring-exports';
 import { ipcRenderer, app } from 'electron';
+import { isArray } from 'lodash';
 
 type MigarationButtonProps = {
   devices?: [];
@@ -50,11 +51,11 @@ export class MigrationButton extends React.Component<MigarationButtonProps, Miga
     const { model } = this.props;
     let { devices } = this.state;
     console.log('_onMigrationModal', devices);
-    if (method == 'pull') {
+    if (method == 'pull' && isArray(devices)) {
       // @ts-ignore
       devices = devices.filter(d => d.models_has_state.includes(model))
     }
-
+    console.log('after filter', devices);
     if (devices.length) {
       Actions.openModal({
         component: <MigrationModal devices={devices} method={method} model={model} />,
