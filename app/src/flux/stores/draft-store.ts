@@ -49,14 +49,16 @@ class DraftStore extends MailspringStore {
 
     ipcRenderer.on('rsm:sending-email', (event, params) => {
       // console.log('rsm:draft-store', params);
-      this._onState(params);
+      this._onState(params.state, params.wndwKey);
     });
+
 
     this.listenTo(DatabaseStore, this._onDataChanged);
     this.listenTo(Actions.composeReply, this._onComposeReply);
     this.listenTo(Actions.composeForward, this._onComposeForward);
     this.listenTo(Actions.composePopoutDraft, this._onPopoutDraft);
     this.listenTo(Actions.composeNewBlankDraft, this._onPopoutBlankDraft);
+    this.listenTo(Actions.composeNewBlankDraftState, this._onPopoutBlankDraftState);
     this.listenTo(Actions.composeNewDraftToRecipient, this._onPopoutNewDraftToRecipient);
     this.listenTo(Actions.draftDeliveryFailed, this._onSendDraftFailed);
     this.listenTo(Actions.draftDeliverySucceeded, this._onSendDraftSuccess);
@@ -328,6 +330,13 @@ class DraftStore extends MailspringStore {
     await this._onPopoutDraft(headerMessageId, { newDraft: true });
   };
 
+  _onPopoutBlankDraftState = async (state) => {
+    const draft = await DraftFactory.createDraft();
+    this.addState(draft, state);
+    const { headerMessageId } = await this._finalizeAndPersistNewMessage(draft);
+    await this._onPopoutDraft(headerMessageId, { newDraft: true });
+  };
+
   _onPopoutDraft = async (headerMessageId, options: { newDraft?: boolean } = {}) => {
     if (headerMessageId == null) {
       throw new Error('DraftStore::onPopoutDraftId - You must provide a headerMessageId');
@@ -408,6 +417,7 @@ class DraftStore extends MailspringStore {
       console.warn('Tried to delete a draft that had no ID assigned yet.');
     }
     if (AppEnv.isComposerWindow()) {
+      // ipcRenderer.send('rsm:migration_store:compose', { action: 'delete' })
       AppEnv.close();
     }
   };
@@ -535,21 +545,56 @@ class DraftStore extends MailspringStore {
     }
   };
 
-  _onState = async data => {
-    console.log('_onState');
+  _onState = async (data, wndwKey) => {
+    console.log('_onState', wndwKey);
     console.log(JSON.stringify(data));
     const sendingEmail: SendingEmailObject = data;
     console.log(this._draftSessions);
 
-    const headerMessageId = Object.keys(this._draftSessions)[Object.keys(this._draftSessions).length - 1];
-    let session = this._draftSessions[headerMessageId];
-    let draft = session._draft;
-    console.log(draft);
-    // if state is not empty and there is a state
-    // tell the other app the migration is done
+    // const headerMessageId = Object.keys(this._draftSessions)[Object.keys(this._draftSessions).length - 1];
+    if (wndwKey) {
+      const headerMessageId = wndwKey.split('composer-')[1];
+      let session = this._draftSessions[headerMessageId];
+      let draft = session._draft;
+      console.log(draft);
+      // if state is not empty and there is a state
+      // tell the other app the migration is done
+      if (isObject(data) && Object.keys(data).length > 0) {
+        draft.subject = sendingEmail.subject;
+        // draft.body = sendingEmail.body;
+        draft.body = sendingEmail.body.replace(/(<([^>]+)>)/ig, '');
+        draft.to = [];
+        if (isArray(sendingEmail.to) !== undefined) {
+          sendingEmail.to.split(',').forEach(c => {
+            draft.to.push(new Contact({ email: c }))
+          });
+        }
+        ipcRenderer.send('rsm:sending-email', { action: 'migration' });
+        this.trigger();
+      } else {
+        // const newDraft = await DraftFactory.createDraft();
+        // draft.subject = newDraft.subject;
+        // draft.to = newDraft.to;
+        // console.log(newDraft.from)
+        // // draft.from = [new Contact({ email: newDraft.from[0].email })];
+        // draft.body = newDraft.body;
+
+        // console.log('CLEAN');
+        this._onDestroyDraft(draft);
+      }
+    } else {
+      this._onPopoutBlankDraftState(data);
+      ipcRenderer.send('rsm:sending-email', { action: 'migration' });
+    }
+
+  };
+
+  addState = (draft: Message, data) => {
+    const sendingEmail: SendingEmailObject = data;
     if (isObject(data) && Object.keys(data).length > 0) {
       draft.subject = sendingEmail.subject;
       // draft.body = sendingEmail.body;
+      // draft.from = [new Contact({ email: sendingEmail.from })];
       draft.body = sendingEmail.body.replace(/(<([^>]+)>)/ig, '');
       draft.to = [];
       if (isArray(sendingEmail.to) !== undefined) {
@@ -557,23 +602,9 @@ class DraftStore extends MailspringStore {
           draft.to.push(new Contact({ email: c }))
         });
       }
-      // draft.from = [new Contact({ email: sendingEmail.from })];
 
-      console.log('sending-email-migration');
-      ipcRenderer.send('rsm:sending-email', { action: 'migration' });
-    } else {
-      // const newDraft = await DraftFactory.createDraft();
-      // draft.subject = newDraft.subject;
-      // draft.to = newDraft.to;
-      // console.log(newDraft.from)
-      // // draft.from = [new Contact({ email: newDraft.from[0].email })];
-      // draft.body = newDraft.body;
-
-      // console.log('CLEAN');
-      this._onDestroyDraft(draft);
     }
-    this.trigger();
-  };
+  }
 
 
 }

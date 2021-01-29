@@ -429,7 +429,7 @@ class ThreadSearchBar extends Component<
               )}
             </div>
           )}
-        <MigrationButton model="search" />
+        <MigrationButton model="search" window="default" />
         <MigrationNotification />
       </KeyCommandsRegion>
     );

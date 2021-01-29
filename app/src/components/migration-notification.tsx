@@ -4,7 +4,7 @@ import MigrationStore from '../flux/stores/migration-store';
 import { ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
 import { localized, Actions, FocusedPerspectiveStore, NativeNotifications } from 'mailspring-exports';
 import { ipcRenderer, app } from 'electron';
-import { upperFirst } from 'lodash';
+import { upperFirst, isEqual } from 'lodash';
 
 type MigrationNotificationProps = {
   notification?: {};
@@ -24,7 +24,7 @@ export class MigrationNotification extends React.Component<MigrationNotification
 
   componentWillMount() {
     console.log('componentWillMount');
-    ipcRenderer.send('rsm:migration_store:notification', { action: 'init' });
+    // ipcRenderer.send('rsm:migration_store:notification', { action: 'init' });
   }
 
   componentDidMount() {
@@ -32,7 +32,10 @@ export class MigrationNotification extends React.Component<MigrationNotification
   }
 
   componentWillReceiveProps(nextProps) {
-    if (Object.keys(nextProps.notification).length) {
+    if (
+      Object.keys(nextProps.notification).length &&
+      !isEqual(nextProps.notification, this.props.notification)
+    ) {
       this._onNotification(nextProps.notification);
     }
   }

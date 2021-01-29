@@ -1,5 +1,5 @@
 /* eslint global-require: "off" */
-import { BrowserWindow, Menu, app, ipcMain, dialog, nativeImage, shell } from 'electron';
+import { BrowserWindow, Menu, app, ipcMain, dialog, nativeImage, shell, ipcRenderer } from 'electron';
 
 import fs from 'fs-plus';
 import url from 'url';
@@ -730,28 +730,25 @@ export default class Application extends EventEmitter {
       event.returnValue = true;
     });
 
-    ipcMain.on('rsm:migration_store:notification', (event, params) => {
-      if (params.action === 'init') {
-        this.rsmEvents[`migration_store_notification`] = event;
-      }
-    });
 
     ipcMain.on('rsm:migration_store', (event, params) => {
       console.log('ms:rsm:devices', params);
       if (params.action === 'init') {
-        this.rsmEvents[`migration_store:${params.model}`] = event;
+        this.rsmEvents[`migration_store:${params.model}`] = params.window;
       } else if (params.action == 'devices' && params.model != undefined) {
         const devices = this.rsm.getDevices(params.model);
         console.log('rsm:migration_store:devices')
         console.log(devices);
-        this.rsmEvents[`migration_store:${params.model}`].sender.send(`rsm:migration_store`, { action: 'devices', devices });
+        // this.rsmEvents[`migration_store:${params.model}`].sender.send(`rsm:migration_store`, { action: 'devices', devices });
+        this.windowManager.get(params.window).browserWindow.webContents.send(`rsm:migration_store`, { action: 'devices', devices });
       }
     });
 
     ipcMain.on('rsm:search', (event, params) => {
       console.log('ms:rsm:search', params);
       if (params.action === 'init') {
-        this.rsmEvents['search'] = event;
+        // this.rsmEvents['search'] = event;
+        this.rsmEvents['search'] = params.window;
       } else if (params.action === 'set') {
         console.log('ms:rsm:search', 'set')
         // set the current state of the app
@@ -785,7 +782,8 @@ export default class Application extends EventEmitter {
 
       console.log(TAG, params);
       if (params.action === 'init') {
-        this.rsmEvents[title] = event;
+        // this.rsmEvents[title] = event;
+        this.rsmEvents[title] = params.window;
       } else if (params.action === 'set') {
         console.log(TAG, 'set')
         // set the current state of the app
@@ -810,6 +808,7 @@ export default class Application extends EventEmitter {
         if (this.rsmDevice) {
           this.rsm.setMigration(title, this.rsmDevice);
           this.rsmDevice = '';
+          this.rsmEvents[title] = '';
         }
       }
     });
@@ -973,11 +972,28 @@ export default class Application extends EventEmitter {
   }
 
   setState(model_name, state) {
-    if (this.rsmEvents[model_name] !== undefined) {
-      this.rsmEvents[model_name].sender.send(`rsm:${model_name}`, state);
-    } else {
-      console.log('rsmOnStateReceive:', 'Sender event is undefined');
-    }
+    // console.log('_windows', this.windowManager._windows);
+    const wndwKey = typeof this.rsmEvents[model_name] == 'string' ? this.rsmEvents[model_name] : '';
+    const wndw = this.windowManager.get(wndwKey) || null;
+    const migrateWindow = (wndw ? wndw.browserWindow : null) || this.getMainWindow();
+
+    migrateWindow.webContents.send(`rsm:${model_name}`, { state, wndwKey });
+    // try {
+    //   // if (this.rsmEvents[model_name] !== undefined) {
+    //   this.getMainWindow().webContents.send(`rsm:${model_name}`, state);
+    //   // this.rsmEvents[model_name].sender.send(`rsm:${model_name}`, state);
+    //   // } else {
+    //   // console.log('rsmOnStateReceive:', 'Sender event is undefined');
+    //   // if (model_name == sendingEmail.info.title) {
+    //   // ipcRenderer.send('rsm:migration_store:compose', { action: 'draft', data: state });
+    //   // this.rsmEvents['migration_store_compose'].sender.send(`rsm:migration_store:compose`, { action: 'draft', data: state });
+    //   // this.getMainWindow().webContents.send('rsm:migration_store:compose', { action: 'draft', data: state });
+    //   // }
+    //   // }
+    // } catch (error) {
+    //   console.log(Object.keys(this.rsmEvents));
+    //   console.log(error);
+    // }
 
     switch (model_name) {
       case searchEmail.info.title:
@@ -986,13 +1002,15 @@ export default class Application extends EventEmitter {
         break;
 
       case sendingEmail.info.title:
+        const sendingEmailData: SendingEmailObject = state;
+        this.rsm.setState(searchEmail.info.title, sendingEmailData);
         break;
     }
 
   }
 
   rsmOnStateReceive(data) {
-    console.log('rsmOnStateReceive', data);
+    console.log('rsmOnStateReceive', data, this.rsmDevice);
     this.rsmDevice = data.device._id;
     this.setState(data.model_name, data.state);
   }
@@ -1009,12 +1027,13 @@ export default class Application extends EventEmitter {
 
   rsmOnDeviceJoin(data) {
     console.log('rsmOnDeviceJoin', data);
-    this.rsmEvents['migration_store_notification'].sender.send(`rsm:migration_store`, { action: 'joined', data });
+    this.getMainWindow().webContents.send(`rsm:migration_store`, { action: 'joined', data });
     // this.rsm.getStateDevice(data.model_name, data.device._id);
   }
 
   rsmOnDeviceLeave(data) {
-    this.rsmEvents['migration_store_notification'].sender.send(`rsm:migration_store`, { action: 'left', data });
+    // this.rsmEvents['migration_store_notification'].sender.send(`rsm:migration_store`, { action: 'left', data });
+    this.getMainWindow().webContents.send(`rsm:migration_store`, { action: 'left', data });
     console.log('rsmOnDeviceLeave', data);
     // this.rsm.getStateDevice(data.model_name, data.device._id);
   }

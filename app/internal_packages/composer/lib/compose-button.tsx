@@ -9,6 +9,7 @@ export default class ComposeButton extends React.Component {
     Actions.composeNewBlankDraft();
   };
 
+
   render() {
     return (
       <button

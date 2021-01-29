@@ -96,7 +96,6 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       quotedTextHidden: hideQuotedTextByDefault(draft),
     };
 
-    ipcRenderer.send('rsm:sending-email', { action: 'init' });
   }
 
   componentWillReceiveProps(nextProps) {
@@ -110,6 +109,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     console.log('draft-componentWillReceiveProps', nextProps.draft);
     ipcRenderer.send('rsm:sending-email', { action: 'set', data: { ...sendingEmail } });
   }
+
   componentDidMount() {
     const { date, files } = this.props.draft;
 
@@ -240,7 +240,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
             />
           </div>
         </div>
-        <MigrationButton model="sending-email" />
+        <MigrationButton model="sending-email" window={`composer-${draft.headerMessageId}`} />
       </div>
     );
   }

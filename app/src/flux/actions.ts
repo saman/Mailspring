@@ -391,6 +391,17 @@ export const composePopoutDraft = create('composePopoutDraft', ActionScopeWindow
 export const composeNewBlankDraft = create('composeNewBlankDraft', ActionScopeWindow);
 
 /*
+  Public: Open a new composer window for creating a new draft from scratch.
+
+  *Scope: Window*
+
+  ```
+  Actions.composeNewBlankDraft()
+  ```
+  */
+export const composeNewBlankDraftState = create('composeNewBlankDraftState', ActionScopeWindow);
+
+/*
   Public: Open a new composer window for a new draft addressed to the given recipient
 
   *Scope: Window*

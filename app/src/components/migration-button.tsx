@@ -9,6 +9,7 @@ import { isArray } from 'lodash';
 type MigarationButtonProps = {
   devices?: [];
   model: string;
+  window?: string;
 };
 
 type MigarationButtonState = {
@@ -57,6 +58,9 @@ export class MigrationButton extends React.Component<MigarationButtonProps, Miga
     }
     console.log('after filter', devices);
     if (devices.length) {
+      if (this.props.window.length) {
+        ipcRenderer.send(`rsm:${this.props.model}`, { action: 'init', window: this.props.window });
+      }
       Actions.openModal({
         component: <MigrationModal devices={devices} method={method} model={model} />,
         width: MigrationModal.IntrinsicWidth,
@@ -72,7 +76,7 @@ export class MigrationButton extends React.Component<MigarationButtonProps, Miga
     const showButtons = !this.state.showButtons;
     this.setState({ showButtons });
     if (showButtons) {
-      ipcRenderer.send('rsm:migration_store', { action: 'devices', model: this.props.model });
+      ipcRenderer.send('rsm:migration_store', { action: 'devices', model: this.props.model, window: this.props.window });
     }
   }
 

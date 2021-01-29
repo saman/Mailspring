@@ -20,7 +20,7 @@ class SearchStore extends MailspringStore {
     super();
     ipcRenderer.on('rsm:search', (event, params) => {
       console.log('rsm:thread-search-bar', params);
-      this._onState(params);
+      this._onState(params.state, params.wndwKey);
     });
 
     this.listenTo(FocusedPerspectiveStore, this._onPerspectiveChanged);
@@ -85,7 +85,7 @@ class SearchStore extends MailspringStore {
   };
 
 
-  _onState = data => {
+  _onState = (data, wndwKey) => {
     console.log('_onState');
     console.log(JSON.stringify(data));
     const search: SearchObject = data;
