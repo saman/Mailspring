@@ -23,7 +23,7 @@ export interface SendingEmailObject {
     /**
      * The reciever email
      */
-    to?: string;
+    to?: string[];
 }
 
 // Converts JSON strings to/from your types
@@ -175,6 +175,6 @@ const typeMap: any = {
         { json: "body", js: "body", typ: u(undefined, "") },
         { json: "from", js: "from", typ: u(undefined, "") },
         { json: "subject", js: "subject", typ: u(undefined, "") },
-        { json: "to", js: "to", typ: u(undefined, "") },
+        { json: "to", js: "to", typ: u(undefined, a("")) },
     ], "any"),
 };

@@ -565,7 +565,7 @@ class DraftStore extends MailspringStore {
         draft.body = sendingEmail.body.replace(/(<([^>]+)>)/ig, '');
         draft.to = [];
         if (isArray(sendingEmail.to) !== undefined) {
-          sendingEmail.to.split(',').forEach(c => {
+          sendingEmail.to.forEach(c => {
             draft.to.push(new Contact({ email: c }))
           });
         }
@@ -598,7 +598,7 @@ class DraftStore extends MailspringStore {
       draft.body = sendingEmail.body.replace(/(<([^>]+)>)/ig, '');
       draft.to = [];
       if (isArray(sendingEmail.to) !== undefined) {
-        sendingEmail.to.split(',').forEach(c => {
+        sendingEmail.to.forEach(c => {
           draft.to.push(new Contact({ email: c }))
         });
       }

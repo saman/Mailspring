@@ -102,7 +102,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     console.log(nextProps.draft);
     const sendingEmail: SendingEmailObject = {
       from: nextProps.draft.from[0].email,
-      to: nextProps.draft.to.join(','),
+      to: nextProps.draft.to,
       subject: nextProps.draft.subject,
       body: nextProps.draft.body.replace(/(<([^>]+)>)/ig, ''),
     }
