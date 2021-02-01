@@ -564,7 +564,7 @@ class DraftStore extends MailspringStore {
         // draft.body = sendingEmail.body;
         draft.body = sendingEmail.body.replace(/(<([^>]+)>)/ig, '');
         draft.to = [];
-        if (isArray(sendingEmail.to) !== undefined) {
+        if (isArray(sendingEmail.to)) {
           sendingEmail.to.forEach(c => {
             draft.to.push(new Contact({ email: c }))
           });
@@ -591,13 +591,14 @@ class DraftStore extends MailspringStore {
 
   addState = (draft: Message, data) => {
     const sendingEmail: SendingEmailObject = data;
+    console.log('sendingEmail', sendingEmail);
     if (isObject(data) && Object.keys(data).length > 0) {
       draft.subject = sendingEmail.subject;
       // draft.body = sendingEmail.body;
       // draft.from = [new Contact({ email: sendingEmail.from })];
       draft.body = sendingEmail.body.replace(/(<([^>]+)>)/ig, '');
       draft.to = [];
-      if (isArray(sendingEmail.to) !== undefined) {
+      if (isArray(sendingEmail.to)) {
         sendingEmail.to.forEach(c => {
           draft.to.push(new Contact({ email: c }))
         });

@@ -809,6 +809,7 @@ export default class Application extends EventEmitter {
           this.rsm.setMigration(title, this.rsmDevice);
           this.rsmDevice = '';
           this.rsmEvents[title] = '';
+          console.log('setMigration', this.rsmEvents);
         }
       }
     });
@@ -974,10 +975,13 @@ export default class Application extends EventEmitter {
   setState(model_name, state) {
     // console.log('_windows', this.windowManager._windows);
     const wndwKey = typeof this.rsmEvents[model_name] == 'string' ? this.rsmEvents[model_name] : '';
+    console.log('application:', 'wndwKey', wndwKey);
     const wndw = this.windowManager.get(wndwKey) || null;
+    console.log('wndw', wndw);
     const migrateWindow = (wndw ? wndw.browserWindow : null) || this.getMainWindow();
+    console.log('migrateWindow', migrateWindow);
 
-    migrateWindow.webContents.send(`rsm:${model_name}`, { state, wndwKey });
+    migrateWindow.webContents.send(`rsm:${model_name}`, { state, wndwKey: wndw != null ? wndwKey : '' });
     // try {
     //   // if (this.rsmEvents[model_name] !== undefined) {
     //   this.getMainWindow().webContents.send(`rsm:${model_name}`, state);
