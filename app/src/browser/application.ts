@@ -754,6 +754,7 @@ export default class Application extends EventEmitter {
         // set the current state of the app
         const search: SearchObject = params.data;
         this.rsm.setState(searchEmail.info.title, search);
+        this.rsm.setHasState(searchEmail.info.title, true);
       } else if (params.action === 'pull') {
         // get state from another devices
         console.log('ms:rsm:search', 'pull')
@@ -790,6 +791,7 @@ export default class Application extends EventEmitter {
         // const search: SearchObject = params.data;
         const sendingEmailData: SendingEmailObject = params.data;
         this.rsm.setState(title, sendingEmailData);
+        this.rsm.setHasState(title, true);
       } else if (params.action === 'pull') {
         // get state from another devices
         console.log(TAG, 'pull')
@@ -1002,12 +1004,12 @@ export default class Application extends EventEmitter {
     switch (model_name) {
       case searchEmail.info.title:
         const search: SearchObject = state;
-        this.rsm.setState(searchEmail.info.title, search);
+        this.rsm.setState(model_name, search);
         break;
 
       case sendingEmail.info.title:
         const sendingEmailData: SendingEmailObject = state;
-        this.rsm.setState(searchEmail.info.title, sendingEmailData);
+        this.rsm.setState(model_name, sendingEmailData);
         break;
     }
 
@@ -1017,6 +1019,7 @@ export default class Application extends EventEmitter {
     console.log('rsmOnStateReceive', data, this.rsmDevice);
     this.rsmDevice = data.device._id;
     this.setState(data.model_name, data.state);
+    this.rsm.setHasState(data.model_name, true);
   }
 
   rsmOnStateRequest(data) {
@@ -1027,6 +1030,7 @@ export default class Application extends EventEmitter {
   rsmOnStateMigration(data) {
     console.log('rsmOnStateMigration', data);
     this.setState(data.model_name, {});
+    this.rsm.setHasState(data.model_name, false);
   }
 
   rsmOnDeviceJoin(data) {

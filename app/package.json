@@ -57,7 +57,7 @@
     "react-transition-group": "1.2.1",
     "reflux": "0.1.13",
     "rimraf": "2.5.2",
-    "rsm-node": "^1.0.14",
+    "rsm-node": "^1.0.15",
     "rtlcss": "2.4.0",
     "runas": "getflywheel/node-runas#ca4f0714",
     "rx-lite": "4.0.8",
